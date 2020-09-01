@@ -13,10 +13,10 @@
 // ------------------
 //
 
-#ifndef __LOL_VEC2_H__
-#define __LOL_VEC2_H__
+#if !defined __LOL_MATRIX_H__
+#define __LOL_MATRIX_H__
 
-#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <functional>
@@ -24,8 +24,9 @@
 #include <numeric>
 #include <type_traits>
 
-namespace lol
-{
+#include "vec2fwd.h"
+
+namespace lol {
 
 namespace details
 {
@@ -43,11 +44,8 @@ namespace details
     }
 }
 
-template <typename TVec> 
-class Vec2
-{
-    // Pourrait accepter plus de types numériques, mais cela ne faisait pas partie de l'implémentaion initiale
-    static_assert(std::is_same<TVec, int>::value || std::is_same<TVec, float>::value);
+template <typename TVec> class Vec2 {
+    static_assert(std::is_same_v<TVec, int> || std::is_same_v<TVec, float>);
 
     using TData = std::array<TVec, 2>;
 
@@ -56,39 +54,27 @@ public:
     explicit Vec2(TVec val = TVec{}) : m_data{val, val} { }
     Vec2(TVec _x, TVec _y) : m_data{_x, _y} { }
 
-    // Opérations vectorielles
-    Vec2<TVec>& operator+=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::plus<TVec>{});       return *this; }
-    Vec2<TVec>& operator-=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::minus<TVec>{});      return *this; }
-    Vec2<TVec>& operator*=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::multiplies<TVec>{}); return *this; }
-    Vec2<TVec>& operator/=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::divides<TVec>{});    return *this; }
-
-    // Opérations scalaires
-    Vec2<TVec>& operator+=(const TVec& val) { *this = scalarOpImpl(val, std::plus<TVec>{});       return *this; }
-    Vec2<TVec>& operator-=(const TVec& val) { *this = scalarOpImpl(val, std::minus<TVec>{});      return *this; }
-    Vec2<TVec>& operator*=(const TVec& val) { *this = scalarOpImpl(val, std::multiplies<TVec>{}); return *this; }
-    Vec2<TVec>& operator/=(const TVec& val) { *this = scalarOpImpl(val, std::divides<TVec>{});    return *this; }
-    
-    // Indexation
-    const TVec& operator[](int n) const 
+    // Indexing
+    constexpr const TVec& operator[](int n) const 
     { 
         assert(0 <= n && n < 2);
         return m_data[n]; 
     }
-    
-    // Accesseurs
-    TVec X() const { return m_data[0]; }
-    TVec Y() const { return m_data[1]; }
 
-    TVec& X() { return m_data[0]; }
-    TVec& Y() { return m_data[1]; }
+    // Accessors
+    constexpr TVec X() const { return m_data[0]; }
+    constexpr TVec Y() const { return m_data[1]; }
 
-    // Itérateurs
+    constexpr TVec& X() { return m_data[0]; }
+    constexpr TVec& Y() { return m_data[1]; }
+
+    // Iterators
     constexpr typename TData::iterator begin() noexcept              { return m_data.begin(); }
     constexpr typename TData::iterator end() noexcept                { return m_data.end(); }
     constexpr typename TData::const_iterator cbegin() const noexcept { return m_data.cbegin(); }
     constexpr typename TData::const_iterator cend() const noexcept   { return m_data.cend(); }
 
-    // Longueur
+    // Length
     TVec sqlen() const
     { 
         return std::accumulate(m_data.cbegin(), m_data.cend(), TVec{});
@@ -98,7 +84,19 @@ public:
     { 
         return std::sqrt(static_cast<float>(sqlen()));
     }
-    
+
+    // Vector operators
+    Vec2<TVec>& operator+=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::plus<TVec>{});       return *this; }
+    Vec2<TVec>& operator-=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::minus<TVec>{});      return *this; }
+    Vec2<TVec>& operator*=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::multiplies<TVec>{}); return *this; }
+    Vec2<TVec>& operator/=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::divides<TVec>{});    return *this; }
+
+    // Scalar operators
+    Vec2<TVec>& operator+=(const TVec& val) { *this = scalarOpImpl(val, std::plus<TVec>{});       return *this; }
+    Vec2<TVec>& operator-=(const TVec& val) { *this = scalarOpImpl(val, std::minus<TVec>{});      return *this; }
+    Vec2<TVec>& operator*=(const TVec& val) { *this = scalarOpImpl(val, std::multiplies<TVec>{}); return *this; }
+    Vec2<TVec>& operator/=(const TVec& val) { *this = scalarOpImpl(val, std::divides<TVec>{});    return *this; }
+
 private:
     template<typename TFunc>
     Vec2<TVec>& vectorOpImpl(const Vec2<TVec>& val, TFunc&& func)
@@ -114,23 +112,10 @@ private:
         return *this;
     }
 
-private:
     TData m_data{};
 };
 
-// Opérations vectorielles
-template<typename TVec> inline Vec2<TVec> operator+(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs += rhs; return lhs; }
-template<typename TVec> inline Vec2<TVec> operator-(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs -= rhs; return lhs; }
-template<typename TVec> inline Vec2<TVec> operator*(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs *= rhs; return lhs; }
-template<typename TVec> inline Vec2<TVec> operator/(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs /= rhs; return lhs; }
-
-// Opérations scalaires
-template<typename TVec> inline Vec2<TVec> operator+(Vec2<TVec> lhs, const TVec& rhs) { lhs += rhs; return lhs; }
-template<typename TVec> inline Vec2<TVec> operator-(Vec2<TVec> lhs, const TVec& rhs) { lhs -= rhs; return lhs; }
-template<typename TVec> inline Vec2<TVec> operator*(Vec2<TVec> lhs, const TVec& rhs) { lhs *= rhs; return lhs; }
-template<typename TVec> inline Vec2<TVec> operator/(Vec2<TVec> lhs, const TVec& rhs) { lhs /= rhs; return lhs; }
-
-// Opérations booléennes (égalité)
+// Equality operators
 inline bool operator==(const Vec2<int>& lhs, const Vec2<int>& rhs)
 { 
     return details::compareVector(lhs, rhs, std::equal_to<int>{});
@@ -141,7 +126,7 @@ inline bool operator==(const Vec2<float>& lhs, const Vec2<float>& rhs)
 }
 template<typename TVec> inline bool operator!=(const Vec2<TVec>& lhs, const Vec2<TVec>& rhs) { return !(lhs == rhs); }
 
-// Opérations booléennes (comparaison)
+// Comparison operators
 template<typename TVec> inline bool operator<(const Vec2<TVec>& lhs, const Vec2<TVec>& rhs)  
 {
     return details::compareVector(lhs, rhs, [](TVec lhs, TVec rhs){ return lhs < rhs; });
@@ -150,7 +135,18 @@ template<typename TVec> inline bool operator<=(const Vec2<TVec>& lhs, const Vec2
 template<typename TVec> inline bool operator>=(const Vec2<TVec>& lhs, const Vec2<TVec>& rhs) { return !(lhs < rhs); }
 template<typename TVec> inline bool operator>(const Vec2<TVec>& lhs, const Vec2<TVec>& rhs)  { return rhs < lhs; }
 
+// Vector operators
+template<typename TVec> inline Vec2<TVec> operator+(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs += rhs; return lhs; }
+template<typename TVec> inline Vec2<TVec> operator-(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs -= rhs; return lhs; }
+template<typename TVec> inline Vec2<TVec> operator*(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs *= rhs; return lhs; }
+template<typename TVec> inline Vec2<TVec> operator/(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs /= rhs; return lhs; }
+
+// Scalar operators
+template<typename TVec> inline Vec2<TVec> operator+(Vec2<TVec> lhs, const TVec& rhs) { lhs += rhs; return lhs; }
+template<typename TVec> inline Vec2<TVec> operator-(Vec2<TVec> lhs, const TVec& rhs) { lhs -= rhs; return lhs; }
+template<typename TVec> inline Vec2<TVec> operator*(Vec2<TVec> lhs, const TVec& rhs) { lhs *= rhs; return lhs; }
+template<typename TVec> inline Vec2<TVec> operator/(Vec2<TVec> lhs, const TVec& rhs) { lhs /= rhs; return lhs; }
+
 } /* namespace lol */
 
-#endif // __LOL_VEC2_H__
-
+#endif // __LOL_MATRIX_H__
