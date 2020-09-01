@@ -1,0 +1,121 @@
+--- "../6-Comparison operators/vec2.h"	2020-08-31 20:30:19.676300738 -0400
++++ vec2.h	2020-08-31 20:35:54.043591754 -0400
+@@ -28,43 +28,6 @@
+ 
+ namespace lol {
+ 
+-#define VECTOR_OP(elems, op)                                                   \
+-  template <typename U>                                                        \
+-  inline Vec##elems<T> operator op(Vec##elems<U> const &val) const {           \
+-    Vec##elems<T> ret;                                                         \
+-    for (int n = 0; n < elems; n++)                                            \
+-      ret[n] = (*this)[n] op val[n];                                           \
+-    return ret;                                                                \
+-  }                                                                            \
+-                                                                               \
+-  template <typename U>                                                        \
+-  inline Vec##elems<T> operator op##=(Vec##elems<U> const &val) {              \
+-    return *this = (*this)op val;                                              \
+-  }
+-
+-#define SCALAR_OP(elems, op)                                                   \
+-  inline Vec##elems<T> operator op(T const &val) const {                       \
+-    Vec##elems<T> ret;                                                         \
+-    for (int n = 0; n < elems; n++)                                            \
+-      ret[n] = (*this)[n] op val;                                              \
+-    return ret;                                                                \
+-  }                                                                            \
+-                                                                               \
+-  inline Vec##elems<T> operator op##=(T const &val) {                          \
+-    return *this = (*this)op val;                                              \
+-  }
+-
+-#define OPERATORS(elems)                                                       \
+-  VECTOR_OP(elems, -)                                                          \
+-  VECTOR_OP(elems, +)                                                          \
+-  VECTOR_OP(elems, *)                                                          \
+-  VECTOR_OP(elems, /)                                                          \
+-                                                                               \
+-  SCALAR_OP(elems, -)                                                          \
+-  SCALAR_OP(elems, +)                                                          \
+-  SCALAR_OP(elems, *)                                                          \
+-  SCALAR_OP(elems, /)
+-
+ namespace details
+ {
+     template <typename TVec, typename TFunc>
+@@ -122,9 +85,33 @@
+         return std::sqrt(static_cast<float>(sqlen()));
+     }
+ 
+-  OPERATORS(2)
++    // Vector operators
++    Vec2<TVec>& operator+=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::plus<TVec>{});       return *this; }
++    Vec2<TVec>& operator-=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::minus<TVec>{});      return *this; }
++    Vec2<TVec>& operator*=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::multiplies<TVec>{}); return *this; }
++    Vec2<TVec>& operator/=(const Vec2<TVec>& val) { *this = vectorOpImpl(val, std::divides<TVec>{});    return *this; }
++
++    // Scalar operators
++    Vec2<TVec>& operator+=(const TVec& val) { *this = scalarOpImpl(val, std::plus<TVec>{});       return *this; }
++    Vec2<TVec>& operator-=(const TVec& val) { *this = scalarOpImpl(val, std::minus<TVec>{});      return *this; }
++    Vec2<TVec>& operator*=(const TVec& val) { *this = scalarOpImpl(val, std::multiplies<TVec>{}); return *this; }
++    Vec2<TVec>& operator/=(const TVec& val) { *this = scalarOpImpl(val, std::divides<TVec>{});    return *this; }
+ 
+ private:
++    template<typename TFunc>
++    Vec2<TVec>& vectorOpImpl(const Vec2<TVec>& val, TFunc&& func)
++    {
++        std::transform(val.cbegin(), val.cend(), m_data.begin(), m_data.begin(), func);
++        return *this;
++    }
++
++    template<typename TFunc>
++    Vec2<TVec>& scalarOpImpl(const TVec& val, TFunc&& func)
++    {
++        std::transform(m_data.begin(), m_data.end(), m_data.begin(), [&func, &val](TVec elem){ return func(elem, val); });
++        return *this;
++    }
++
+     TData m_data{};
+ };
+ 
+@@ -148,28 +135,17 @@
+ template<typename TVec> inline bool operator>=(const Vec2<TVec>& lhs, const Vec2<TVec>& rhs) { return !(lhs < rhs); }
+ template<typename TVec> inline bool operator>(const Vec2<TVec>& lhs, const Vec2<TVec>& rhs)  { return rhs < lhs; }
+ 
+-
+-#define SCALAR_GLOBAL(elems, op, U)                                            \
+-  template <typename T>                                                        \
+-  static inline Vec##elems<U> operator op(U const &val,                        \
+-                                          Vec##elems<T> const &that) {         \
+-    Vec##elems<U> ret;                                                         \
+-    for (int n = 0; n < elems; n++)                                            \
+-      ret[n] = val op that[n];                                                 \
+-    return ret;                                                                \
+-  }
+-
+-#define SCALAR_GLOBAL2(elems, op)                                              \
+-  SCALAR_GLOBAL(elems, op, int)                                                \
+-  SCALAR_GLOBAL(elems, op, float)
+-
+-#define GLOBALS(elems)                                                         \
+-  SCALAR_GLOBAL2(elems, -)                                                     \
+-  SCALAR_GLOBAL2(elems, +)                                                     \
+-  SCALAR_GLOBAL2(elems, *)                                                     \
+-  SCALAR_GLOBAL2(elems, /)
+-
+-GLOBALS(2)
++// Vector operators
++template<typename TVec> inline Vec2<TVec> operator+(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs += rhs; return lhs; }
++template<typename TVec> inline Vec2<TVec> operator-(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs -= rhs; return lhs; }
++template<typename TVec> inline Vec2<TVec> operator*(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs *= rhs; return lhs; }
++template<typename TVec> inline Vec2<TVec> operator/(Vec2<TVec> lhs, const Vec2<TVec>& rhs) { lhs /= rhs; return lhs; }
++
++// Scalar operators
++template<typename TVec> inline Vec2<TVec> operator+(Vec2<TVec> lhs, const TVec& rhs) { lhs += rhs; return lhs; }
++template<typename TVec> inline Vec2<TVec> operator-(Vec2<TVec> lhs, const TVec& rhs) { lhs -= rhs; return lhs; }
++template<typename TVec> inline Vec2<TVec> operator*(Vec2<TVec> lhs, const TVec& rhs) { lhs *= rhs; return lhs; }
++template<typename TVec> inline Vec2<TVec> operator/(Vec2<TVec> lhs, const TVec& rhs) { lhs /= rhs; return lhs; }
+ 
+ } /* namespace lol */
+ 

@@ -1,0 +1,21 @@
+--- "../1-Dead Code/matrix.h"	2020-08-31 20:22:50.957352136 -0400
++++ vec2.h	2020-08-31 20:23:17.213285602 -0400
+@@ -18,6 +18,8 @@
+ 
+ #include <cmath>
+ 
++#include "vec2fwd.h"
++
+ namespace lol {
+ 
+ #define VECTOR_OP(elems, op)                                                   \
+@@ -101,9 +103,6 @@
+   T y;
+ };
+ 
+-typedef Vec2<float> vec2;
+-typedef Vec2<int> vec2i;
+-
+ #define SCALAR_GLOBAL(elems, op, U)                                            \
+   template <typename T>                                                        \
+   static inline Vec##elems<U> operator op(U const &val,                        \

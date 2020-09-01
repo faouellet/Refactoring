@@ -1,0 +1,34 @@
+--- ../4-Constructors/vec2.h	2020-08-31 20:52:12.217643942 -0400
++++ vec2.h	2020-08-31 20:52:47.465589136 -0400
+@@ -17,6 +17,7 @@
+ #define __LOL_MATRIX_H__
+ 
+ #include <array>
++#include <cassert>
+ #include <cmath>
+ #include <numeric>
+ #include <type_traits>
+@@ -60,9 +61,6 @@
+   }
+ 
+ #define OPERATORS(elems)                                                       \
+-  inline T &operator[](int n) { return *(&x + n); }                            \
+-  inline T const &operator[](int n) const { return *(&x + n); }                \
+-                                                                               \
+   VECTOR_OP(elems, -)                                                          \
+   VECTOR_OP(elems, +)                                                          \
+   VECTOR_OP(elems, *)                                                          \
+@@ -90,6 +88,13 @@
+     explicit Vec2(TVec val = TVec{}) : m_data{val, val} { }
+     Vec2(TVec _x, TVec _y) : m_data{_x, _y} { }
+ 
++    // Indexing
++    constexpr const TVec& operator[](int n) const 
++    { 
++        assert(0 <= n && n < 2);
++        return m_data[n]; 
++    }
++
+     // Accessors
+     constexpr TVec X() const { return m_data[0]; }
+     constexpr TVec Y() const { return m_data[1]; }

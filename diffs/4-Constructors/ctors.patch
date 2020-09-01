@@ -1,0 +1,18 @@
+--- "../3-Class contents/vec2.h"	2020-08-31 20:33:26.315900015 -0400
++++ vec2.h	2020-08-31 20:52:12.217643942 -0400
+@@ -86,12 +86,9 @@
+     using TData = std::array<TVec, 2>;
+ 
+ public:
+-  inline Vec2() {}
+-  inline Vec2(TVec val) { x = y = val; }
+-  inline Vec2(TVec _x, TVec _y) {
+-    x = _x;
+-    y = _y;
+-  }
++    // Ctor
++    explicit Vec2(TVec val = TVec{}) : m_data{val, val} { }
++    Vec2(TVec _x, TVec _y) : m_data{_x, _y} { }
+ 
+     // Accessors
+     constexpr TVec X() const { return m_data[0]; }

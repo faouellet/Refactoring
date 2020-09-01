@@ -1,0 +1,84 @@
+--- "../2-Files Organization/vec2.h"	2020-08-31 20:23:17.213285602 -0400
++++ vec2.h	2020-08-31 20:33:26.315900015 -0400
+@@ -16,7 +16,10 @@
+ #if !defined __LOL_MATRIX_H__
+ #define __LOL_MATRIX_H__
+ 
++#include <array>
+ #include <cmath>
++#include <numeric>
++#include <type_traits>
+ 
+ #include "vec2fwd.h"
+ 
+@@ -75,34 +78,52 @@
+   SCALAR_OP(elems, -)                                                          \
+   SCALAR_OP(elems, +)                                                          \
+   SCALAR_OP(elems, *)                                                          \
+-  SCALAR_OP(elems, /)                                                          \
+-                                                                               \
+-  inline T sqlen() const {                                                     \
+-    T acc = 0;                                                                 \
+-    for (int n = 0; n < elems; n++)                                            \
+-      acc += (*this)[n] * (*this)[n];                                          \
+-    return acc;                                                                \
+-  }                                                                            \
+-                                                                               \
+-  inline float len() const {                                                   \
+-    using namespace std;                                                       \
+-    return sqrtf((float)sqlen());                                              \
+-  }
++  SCALAR_OP(elems, /)
+ 
+-template <typename T> struct Vec2 {
++template <typename TVec> class Vec2 {
++    static_assert(std::is_same_v<TVec, int> || std::is_same_v<TVec, float>);
++
++    using TData = std::array<TVec, 2>;
++
++public:
+   inline Vec2() {}
+-  inline Vec2(T val) { x = y = val; }
+-  inline Vec2(T _x, T _y) {
++  inline Vec2(TVec val) { x = y = val; }
++  inline Vec2(TVec _x, TVec _y) {
+     x = _x;
+     y = _y;
+   }
+ 
++    // Accessors
++    constexpr TVec X() const { return m_data[0]; }
++    constexpr TVec Y() const { return m_data[1]; }
++
++    constexpr TVec& X() { return m_data[0]; }
++    constexpr TVec& Y() { return m_data[1]; }
++
++    // Iterators
++    constexpr typename TData::iterator begin() noexcept              { return m_data.begin(); }
++    constexpr typename TData::iterator end() noexcept                { return m_data.end(); }
++    constexpr typename TData::const_iterator cbegin() const noexcept { return m_data.cbegin(); }
++    constexpr typename TData::const_iterator cend() const noexcept   { return m_data.cend(); }
++
++    // Length
++    TVec sqlen() const
++    { 
++        return std::accumulate(m_data.cbegin(), m_data.cend(), TVec{});
++    } 
++    
++    float len() const
++    { 
++        return std::sqrt(static_cast<float>(sqlen()));
++    }
++
+   OPERATORS(2)
+ 
+-  T x;
+-  T y;
++private:
++    TData m_data{};
+ };
+ 
++
+ #define SCALAR_GLOBAL(elems, op, U)                                            \
+   template <typename T>                                                        \
+   static inline Vec##elems<U> operator op(U const &val,                        \
